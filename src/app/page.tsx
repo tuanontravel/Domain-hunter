@@ -24,7 +24,9 @@ import {
   Zap,
   BarChart3,
   Calendar,
-  ListFilter
+  ListFilter,
+  Menu,
+  X
 } from 'lucide-react';
 import { INITIAL_DOMAINS, DomainItem } from '../data/initialDomains';
 
@@ -32,12 +34,14 @@ export default function DomainHunterDashboard() {
   const [domains, setDomains] = useState<DomainItem[]>(INITIAL_DOMAINS);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<string>('all');
+  const [mobileTab, setMobileTab] = useState<'all' | 'backlog' | 'active' | 'pending' | 'available'>('all');
   const [currentTime, setCurrentTime] = useState<string>('12:00:00');
   const [currentDate, setCurrentDate] = useState<string>('Thứ Bảy, 12 tháng 9, 2026');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [quickInput, setQuickInput] = useState('');
   const [scanMessage, setScanMessage] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Live clock
   useEffect(() => {
@@ -45,9 +49,9 @@ export default function DomainHunterDashboard() {
       const now = new Date();
       setCurrentTime(now.toLocaleTimeString('vi-VN'));
       const options: Intl.DateTimeFormatOptions = {
-        weekday: 'long',
+        weekday: 'short',
         year: 'numeric',
-        month: 'long',
+        month: 'numeric',
         day: 'numeric',
       };
       setCurrentDate(now.toLocaleDateString('vi-VN', options));
@@ -154,9 +158,22 @@ export default function DomainHunterDashboard() {
   const totalActive = domains.filter(d => d.status === 'active').length;
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: isDarkMode ? '#121214' : 'var(--bg-main)', color: isDarkMode ? '#F4F4F5' : '#18181B' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: isDarkMode ? '#121214' : 'var(--bg-main)', color: isDarkMode ? '#F4F4F5' : '#18181B', position: 'relative' }}>
       
-      {/* 1. LEFT SIDEBAR (Neobrutalism Design) */}
+      {/* MOBILE BACKDROP OVERLAY */}
+      {sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            zIndex: 40
+          }}
+        />
+      )}
+
+      {/* 1. SIDEBAR (Responsive Desktop + Mobile Drawer) */}
       <aside style={{
         width: '260px',
         backgroundColor: isDarkMode ? '#18181B' : '#FFFFFF',
@@ -165,42 +182,68 @@ export default function DomainHunterDashboard() {
         flexDirection: 'column',
         padding: '20px 16px',
         gap: '24px',
-        flexShrink: 0
-      }}>
-        {/* User profile */}
+        flexShrink: 0,
+        position: sidebarOpen ? 'fixed' : 'relative',
+        top: 0,
+        bottom: 0,
+        left: 0,
+        zIndex: 50,
+        transform: sidebarOpen ? 'translateX(0)' : undefined,
+        boxShadow: sidebarOpen ? '4px 0px 0px #18181B' : undefined
+      }}
+      className={sidebarOpen ? '' : 'desktop-only'}
+      >
+        {/* User profile with close button for mobile */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '12px',
-          padding: '10px 12px',
-          backgroundColor: isDarkMode ? '#27272A' : '#FBF9F5',
-          border: '2px solid #18181B',
-          borderRadius: '12px',
-          boxShadow: '2px 2px 0px #18181B'
+          justifyContent: 'space-between',
+          gap: '8px'
         }}>
           <div style={{
-            width: '38px',
-            height: '38px',
-            borderRadius: '10px',
-            backgroundColor: '#F26522',
-            color: '#FFFFFF',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            fontWeight: 800,
-            fontSize: '16px',
-            border: '1.5px solid #18181B'
+            gap: '12px',
+            padding: '10px 12px',
+            backgroundColor: isDarkMode ? '#27272A' : '#FBF9F5',
+            border: '2px solid #18181B',
+            borderRadius: '12px',
+            boxShadow: '2px 2px 0px #18181B',
+            flex: 1
           }}>
-            DT
-          </div>
-          <div style={{ overflow: 'hidden' }}>
-            <div style={{ fontWeight: 800, fontSize: '14px', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
-              Đồng Minh Tuấn
+            <div style={{
+              width: '38px',
+              height: '38px',
+              borderRadius: '10px',
+              backgroundColor: '#F26522',
+              color: '#FFFFFF',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 800,
+              fontSize: '16px',
+              border: '1.5px solid #18181B'
+            }}>
+              DT
             </div>
-            <div style={{ fontSize: '11px', color: isDarkMode ? '#A1A1AA' : '#64748B', fontWeight: 600 }}>
-              Co-founder & Dir.
+            <div style={{ overflow: 'hidden' }}>
+              <div style={{ fontWeight: 800, fontSize: '14px', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                Đồng Minh Tuấn
+              </div>
+              <div style={{ fontSize: '11px', color: isDarkMode ? '#A1A1AA' : '#64748B', fontWeight: 600 }}>
+                Co-founder & Dir.
+              </div>
             </div>
           </div>
+
+          {/* Close mobile drawer */}
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="mobile-only brutal-btn brutal-btn-white"
+            style={{ padding: '8px', minHeight: 'unset' }}
+          >
+            <X size={16} />
+          </button>
         </div>
 
         {/* Navigation Sections */}
@@ -369,7 +412,7 @@ export default function DomainHunterDashboard() {
         }}>
           <div style={{ color: '#F26522', marginBottom: '4px' }}>ABSOLUTE ASIA TRAVEL</div>
           <div style={{ color: isDarkMode ? '#A1A1AA' : '#64748B', fontWeight: 500 }}>
-            Domain Hunter & Backorder Radar V1.0
+            Domain Hunter V1.0 · Responsive
           </div>
         </div>
       </aside>
@@ -379,76 +422,59 @@ export default function DomainHunterDashboard() {
         
         {/* Top Header Bar */}
         <header style={{
-          height: '68px',
+          minHeight: '64px',
           borderBottom: '2px solid #18181B',
           backgroundColor: isDarkMode ? '#18181B' : '#FFFFFF',
           display: 'flex',
+          flexWrap: 'wrap',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '0 24px',
-          gap: '16px'
+          padding: '10px 16px',
+          gap: '12px'
         }}>
-          {/* Segmented Control */}
-          <div style={{
-            display: 'flex',
-            backgroundColor: isDarkMode ? '#27272A' : '#F1ECE3',
-            border: '2px solid #18181B',
-            borderRadius: '8px',
-            padding: '3px',
-            gap: '4px'
-          }}>
-            <button style={{
-              border: 'none',
-              padding: '6px 14px',
-              borderRadius: '6px',
-              fontWeight: 800,
-              fontSize: '13px',
-              cursor: 'pointer',
-              backgroundColor: isDarkMode ? '#18181B' : '#FFFFFF',
-              color: isDarkMode ? '#FFFFFF' : '#18181B',
-              boxShadow: '1px 1px 0px #18181B'
-            }}>
-              Domain Hunter
+          
+          {/* Mobile hamburger + Logo Title */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="mobile-only brutal-btn brutal-btn-white"
+              style={{ padding: '8px' }}
+              title="Mở menu"
+            >
+              <Menu size={20} />
             </button>
-            <button style={{
-              border: 'none',
-              padding: '6px 14px',
-              borderRadius: '6px',
-              fontWeight: 700,
-              fontSize: '13px',
-              cursor: 'pointer',
-              backgroundColor: 'transparent',
-              color: isDarkMode ? '#A1A1AA' : '#64748B'
-            }}>
-              Trip Builder
-            </button>
-            <button style={{
-              border: 'none',
-              padding: '6px 14px',
-              borderRadius: '6px',
-              fontWeight: 700,
-              fontSize: '13px',
-              cursor: 'pointer',
-              backgroundColor: 'transparent',
-              color: isDarkMode ? '#A1A1AA' : '#64748B'
-            }}>
-              Business OS
-            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{
+                backgroundColor: '#F26522',
+                color: '#FFFFFF',
+                padding: '4px 8px',
+                borderRadius: '6px',
+                fontWeight: 800,
+                fontSize: '12px',
+                border: '1.5px solid #18181B'
+              }}>
+                AAT
+              </div>
+              <span style={{ fontWeight: 800, fontSize: '15px' }}>Domain Hunter</span>
+            </div>
           </div>
 
           {/* Search Box */}
-          <div style={{
+          <div className="search-container" style={{
             position: 'relative',
-            width: '360px'
+            width: '320px',
+            flexGrow: 1,
+            maxWidth: '480px'
           }}>
             <input
               type="text"
-              placeholder="Tìm kiếm domain, từ khóa, tag... ⌘K"
+              placeholder="Tìm kiếm domain, tag... ⌘K"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
                 width: '100%',
-                padding: '8px 40px 8px 14px',
+                padding: '8px 36px 8px 12px',
                 border: '2px solid #18181B',
                 borderRadius: '8px',
                 backgroundColor: isDarkMode ? '#27272A' : '#FBF9F5',
@@ -459,11 +485,11 @@ export default function DomainHunterDashboard() {
                 boxShadow: '2px 2px 0px #18181B'
               }}
             />
-            <Search size={16} style={{ position: 'absolute', right: '12px', top: '11px', color: '#64748B' }} />
+            <Search size={16} style={{ position: 'absolute', right: '12px', top: '10px', color: '#64748B' }} />
           </div>
 
           {/* Right Controls */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
               className="brutal-btn brutal-btn-white"
@@ -473,82 +499,82 @@ export default function DomainHunterDashboard() {
               {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
             </button>
 
-            {/* Time badge */}
-            <div style={{
+            {/* Time badge (desktop) */}
+            <div className="desktop-only" style={{
               border: '2px solid #18181B',
               borderRadius: '8px',
-              padding: '6px 12px',
+              padding: '4px 10px',
               backgroundColor: isDarkMode ? '#27272A' : '#FBF9F5',
               boxShadow: '2px 2px 0px #18181B',
               textAlign: 'right'
             }}>
-              <div style={{ fontSize: '13px', fontWeight: 800, fontFamily: 'monospace' }}>{currentTime}</div>
+              <div style={{ fontSize: '12px', fontWeight: 800, fontFamily: 'monospace' }}>{currentTime}</div>
               <div style={{ fontSize: '10px', color: '#64748B', fontWeight: 600 }}>{currentDate}</div>
             </div>
           </div>
         </header>
 
         {/* Content Body */}
-        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           
-          {/* 3. METRIC SUMMARY CARDS (6 Cards) */}
-          <div style={{
+          {/* 3. METRIC SUMMARY CARDS (6 Cards - Mobile 2 columns) */}
+          <div className="metric-grid" style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-            gap: '14px'
+            gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+            gap: '12px'
           }}>
             {/* Card 1: Backlog */}
-            <div className="brutal-box" style={{ padding: '16px', backgroundColor: isDarkMode ? '#1F1F23' : '#FFFFFF' }}>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', letterSpacing: '0.5px' }}>CHỜ SĂN (BACKLOG)</div>
-              <div style={{ fontSize: '32px', fontWeight: 800, margin: '6px 0 2px 0', color: '#18181B' }}>
+            <div className="brutal-box" style={{ padding: '12px 14px', backgroundColor: isDarkMode ? '#1F1F23' : '#FFFFFF' }}>
+              <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748B', letterSpacing: '0.5px' }}>CHỜ SĂN</div>
+              <div className="metric-card-val" style={{ fontSize: '28px', fontWeight: 800, margin: '4px 0 2px 0', color: '#18181B' }}>
                 {backlogList.length}
               </div>
-              <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Chờ phân tích RDAP</div>
+              <div style={{ fontSize: '10px', color: '#64748B', fontWeight: 600 }}>Chờ phân tích RDAP</div>
             </div>
 
             {/* Card 2: Active Monitoring */}
-            <div className="brutal-box" style={{ padding: '16px', backgroundColor: isDarkMode ? '#1F1F23' : '#FFFFFF' }}>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#2563EB', letterSpacing: '0.5px' }}>ĐANG THEO DÕI</div>
-              <div style={{ fontSize: '32px', fontWeight: 800, margin: '6px 0 2px 0', color: '#2563EB' }}>
+            <div className="brutal-box" style={{ padding: '12px 14px', backgroundColor: isDarkMode ? '#1F1F23' : '#FFFFFF' }}>
+              <div style={{ fontSize: '10px', fontWeight: 800, color: '#2563EB', letterSpacing: '0.5px' }}>ĐANG THEO DÕI</div>
+              <div className="metric-card-val" style={{ fontSize: '28px', fontWeight: 800, margin: '4px 0 2px 0', color: '#2563EB' }}>
                 {totalActive}
               </div>
-              <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Quét tự động hàng ngày</div>
+              <div style={{ fontSize: '10px', color: '#64748B', fontWeight: 600 }}>Quét tự động hàng ngày</div>
             </div>
 
             {/* Card 3: Priority P0 */}
-            <div className="brutal-box" style={{ padding: '16px', backgroundColor: isDarkMode ? '#1F1F23' : '#FFFFFF', borderColor: '#EF4444' }}>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#EF4444', letterSpacing: '0.5px' }}>ƯU TIÊN CAO (P0)</div>
-              <div style={{ fontSize: '32px', fontWeight: 800, margin: '6px 0 2px 0', color: '#EF4444' }}>
+            <div className="brutal-box" style={{ padding: '12px 14px', backgroundColor: isDarkMode ? '#1F1F23' : '#FFFFFF', borderColor: '#EF4444' }}>
+              <div style={{ fontSize: '10px', fontWeight: 800, color: '#EF4444', letterSpacing: '0.5px' }}>ƯU TIÊN (P0)</div>
+              <div className="metric-card-val" style={{ fontSize: '28px', fontWeight: 800, margin: '4px 0 2px 0', color: '#EF4444' }}>
                 {totalP0}
               </div>
-              <div style={{ fontSize: '11px', color: '#EF4444', fontWeight: 600 }}>Có travelvietnam.com</div>
+              <div style={{ fontSize: '10px', color: '#EF4444', fontWeight: 600 }}>Có travelvietnam.com</div>
             </div>
 
             {/* Card 4: Pending Delete */}
-            <div className="brutal-box" style={{ padding: '16px', backgroundColor: isDarkMode ? '#1F1F23' : '#FFFFFF' }}>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#DC2626', letterSpacing: '0.5px' }}>PENDING DELETE (5 NGÀY)</div>
-              <div style={{ fontSize: '32px', fontWeight: 800, margin: '6px 0 2px 0', color: '#DC2626' }}>
+            <div className="brutal-box" style={{ padding: '12px 14px', backgroundColor: isDarkMode ? '#1F1F23' : '#FFFFFF' }}>
+              <div style={{ fontSize: '10px', fontWeight: 800, color: '#DC2626', letterSpacing: '0.5px' }}>PENDING (5 NGÀY)</div>
+              <div className="metric-card-val" style={{ fontSize: '28px', fontWeight: 800, margin: '4px 0 2px 0', color: '#DC2626' }}>
                 {totalPending}
               </div>
-              <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Chuẩn bị rụng tự do</div>
+              <div style={{ fontSize: '10px', color: '#64748B', fontWeight: 600 }}>Sắp rụng tự do</div>
             </div>
 
             {/* Card 5: Available */}
-            <div className="brutal-box" style={{ padding: '16px', backgroundColor: isDarkMode ? '#1F1F23' : '#FFFFFF' }}>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#059669', letterSpacing: '0.5px' }}>CÓ THỂ MUA NGAY</div>
-              <div style={{ fontSize: '32px', fontWeight: 800, margin: '6px 0 2px 0', color: '#059669' }}>
+            <div className="brutal-box" style={{ padding: '12px 14px', backgroundColor: isDarkMode ? '#1F1F23' : '#FFFFFF' }}>
+              <div style={{ fontSize: '10px', fontWeight: 800, color: '#059669', letterSpacing: '0.5px' }}>MUA NGAY</div>
+              <div className="metric-card-val" style={{ fontSize: '28px', fontWeight: 800, margin: '4px 0 2px 0', color: '#059669' }}>
                 {totalAvailable}
               </div>
-              <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Trống giá gốc (~$10)</div>
+              <div style={{ fontSize: '10px', color: '#64748B', fontWeight: 600 }}>Trống giá gốc (~$10)</div>
             </div>
 
             {/* Card 6: Total */}
-            <div className="brutal-box" style={{ padding: '16px', backgroundColor: isDarkMode ? '#1F1F23' : '#FFFFFF' }}>
-              <div style={{ fontSize: '11px', fontWeight: 800, color: '#F26522', letterSpacing: '0.5px' }}>TỔNG TÊN MIỀN</div>
-              <div style={{ fontSize: '32px', fontWeight: 800, margin: '6px 0 2px 0', color: '#F26522' }}>
+            <div className="brutal-box" style={{ padding: '12px 14px', backgroundColor: isDarkMode ? '#1F1F23' : '#FFFFFF' }}>
+              <div style={{ fontSize: '10px', fontWeight: 800, color: '#F26522', letterSpacing: '0.5px' }}>TỔNG SỐ</div>
+              <div className="metric-card-val" style={{ fontSize: '28px', fontWeight: 800, margin: '4px 0 2px 0', color: '#F26522' }}>
                 {domains.length}
               </div>
-              <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Trong kho giám sát</div>
+              <div style={{ fontSize: '10px', color: '#64748B', fontWeight: 600 }}>Tên miền trong kho</div>
             </div>
           </div>
 
@@ -556,35 +582,35 @@ export default function DomainHunterDashboard() {
           <div style={{
             backgroundColor: isDarkMode ? '#1E293B' : '#FFF7ED',
             border: '2px solid #18181B',
-            borderRadius: '12px',
-            padding: '14px 18px',
+            borderRadius: '10px',
+            padding: '12px 16px',
             display: 'flex',
             alignItems: 'center',
-            gap: '14px',
-            boxShadow: '3px 3px 0px #18181B'
+            gap: '12px',
+            boxShadow: '2px 2px 0px #18181B'
           }}>
-            <span className="brutal-badge" style={{ backgroundColor: '#F26522', color: '#FFFFFF', padding: '4px 10px' }}>
-              MỤC TIÊU CHIẾN LƯỢC
+            <span className="brutal-badge" style={{ backgroundColor: '#F26522', color: '#FFFFFF', padding: '3px 8px', flexShrink: 0 }}>
+              CHIẾN LƯỢC
             </span>
-            <div style={{ fontSize: '13px', fontWeight: 700, color: isDarkMode ? '#E2E8F0' : '#7C2D12', fontStyle: 'italic', flex: 1 }}>
-              &ldquo;Tên miền .com chuẩn Inbound Luxury là tài sản cốt lõi. Săn đón tên miền rụng và thâu tóm tên miền đẹp giá gốc giúp Absolute Asia Travel thống lĩnh thị trường quốc tế.&rdquo;
+            <div style={{ fontSize: '12px', fontWeight: 700, color: isDarkMode ? '#E2E8F0' : '#7C2D12', fontStyle: 'italic', flex: 1 }}>
+              &ldquo;Săn đón tên miền rụng và mua tên miền đẹp giá gốc giúp Absolute Asia Travel dẫn đầu thị trường Inbound Luxury.&rdquo;
             </div>
           </div>
 
           {/* 5. QUICK SCAN & ADD TOOLBAR */}
-          <form onSubmit={handleQuickCheck} style={{
+          <form onSubmit={handleQuickCheck} className="quick-form" style={{
             display: 'flex',
             gap: '10px',
             alignItems: 'center',
             backgroundColor: isDarkMode ? '#18181B' : '#FFFFFF',
-            padding: '12px 16px',
+            padding: '12px',
             border: '2px solid #18181B',
-            borderRadius: '12px',
-            boxShadow: '3px 3px 0px #18181B'
+            borderRadius: '10px',
+            boxShadow: '2px 2px 0px #18181B'
           }}>
             <input
               type="text"
-              placeholder="Nhập tên miền cần săn (vd: travelvietnam.com hoặc luxuryvietnam)..."
+              placeholder="Nhập tên miền (vd: travelvietnam.com hoặc luxuryvietnam)..."
               value={quickInput}
               onChange={(e) => setQuickInput(e.target.value)}
               style={{
@@ -593,7 +619,7 @@ export default function DomainHunterDashboard() {
                 border: '2px solid #18181B',
                 borderRadius: '8px',
                 fontWeight: 600,
-                fontSize: '14px',
+                fontSize: '13px',
                 backgroundColor: isDarkMode ? '#27272A' : '#FBF9F5',
                 color: isDarkMode ? '#FFFFFF' : '#18181B',
                 outline: 'none'
@@ -603,22 +629,22 @@ export default function DomainHunterDashboard() {
               type="submit"
               disabled={isScanning}
               className="brutal-btn brutal-btn-orange"
-              style={{ opacity: isScanning ? 0.7 : 1 }}
+              style={{ opacity: isScanning ? 0.7 : 1, whiteSpace: 'nowrap' }}
             >
               {isScanning ? <RefreshCw size={16} className="animate-spin" /> : <Zap size={16} />}
-              {isScanning ? 'Đang quét RDAP...' : 'Quét RDAP Verisign'}
+              {isScanning ? 'Đang quét...' : 'Quét RDAP Verisign'}
             </button>
           </form>
 
           {/* Live scan alert notification */}
           {scanMessage && (
             <div style={{
-              padding: '10px 16px',
+              padding: '10px 14px',
               backgroundColor: '#EFF6FF',
               border: '2px solid #18181B',
               borderRadius: '8px',
               fontWeight: 700,
-              fontSize: '13px',
+              fontSize: '12px',
               color: '#1E40AF',
               boxShadow: '2px 2px 0px #18181B',
               display: 'flex',
@@ -628,187 +654,280 @@ export default function DomainHunterDashboard() {
               <span>{scanMessage}</span>
               <button
                 onClick={() => setScanMessage(null)}
-                style={{ border: 'none', background: 'transparent', fontWeight: 800, cursor: 'pointer' }}
+                style={{ border: 'none', background: 'transparent', fontWeight: 800, cursor: 'pointer', padding: '4px 8px' }}
               >
                 ✕
               </button>
             </div>
           )}
 
-          {/* 6. QUICK FILTER CHIPS */}
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <span style={{ fontSize: '12px', fontWeight: 800, color: '#64748B', marginRight: '6px' }}>
-              LỌC NHANH:
+          {/* 6. QUICK FILTER CHIPS (Horizontal Scrollable on Mobile) */}
+          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px', alignItems: 'center' }}>
+            <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748B', whiteSpace: 'nowrap', marginRight: '4px' }}>
+              LỌC:
             </span>
             <button
               onClick={() => setActiveFilter('all')}
               className={`brutal-btn ${activeFilter === 'all' ? 'brutal-btn-orange' : 'brutal-btn-white'}`}
-              style={{ padding: '4px 12px', fontSize: '12px', borderRadius: '6px' }}
+              style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '6px', whiteSpace: 'nowrap' }}
             >
               Tất cả ({domains.length})
             </button>
             <button
               onClick={() => setActiveFilter('p0')}
               className={`brutal-btn ${activeFilter === 'p0' ? 'brutal-btn-orange' : 'brutal-btn-white'}`}
-              style={{ padding: '4px 12px', fontSize: '12px', borderRadius: '6px' }}
+              style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '6px', whiteSpace: 'nowrap' }}
             >
-              🔥 P0 Khẩn cấp ({totalP0})
+              🔥 P0 ({totalP0})
             </button>
             <button
               onClick={() => setActiveFilter('vip')}
               className={`brutal-btn ${activeFilter === 'vip' ? 'brutal-btn-orange' : 'brutal-btn-white'}`}
-              style={{ padding: '4px 12px', fontSize: '12px', borderRadius: '6px' }}
+              style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '6px', whiteSpace: 'nowrap' }}
             >
-              ⭐ VIP Watchlist
+              ⭐ VIP
             </button>
             <button
               onClick={() => setActiveFilter('pending')}
               className={`brutal-btn ${activeFilter === 'pending' ? 'brutal-btn-orange' : 'brutal-btn-white'}`}
-              style={{ padding: '4px 12px', fontSize: '12px', borderRadius: '6px' }}
+              style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '6px', whiteSpace: 'nowrap' }}
             >
-              ⌛ Sắp rụng / Grace ({totalPending})
+              ⌛ Sắp rụng ({totalPending})
             </button>
             <button
               onClick={() => setActiveFilter('available')}
               className={`brutal-btn ${activeFilter === 'available' ? 'brutal-btn-orange' : 'brutal-btn-white'}`}
-              style={{ padding: '4px 12px', fontSize: '12px', borderRadius: '6px' }}
+              style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '6px', whiteSpace: 'nowrap' }}
             >
-              ✅ Có thể mua ngay ({totalAvailable})
+              ✅ Mua ngay ({totalAvailable})
+            </button>
+          </div>
+
+          {/* MOBILE COLUMN SELECTOR TABS */}
+          <div className="mobile-only" style={{
+            display: 'flex',
+            backgroundColor: isDarkMode ? '#27272A' : '#EFEAE1',
+            border: '2px solid #18181B',
+            borderRadius: '8px',
+            padding: '3px',
+            overflowX: 'auto',
+            gap: '4px'
+          }}>
+            <button
+              onClick={() => setMobileTab('all')}
+              style={{
+                border: 'none',
+                padding: '6px 10px',
+                borderRadius: '6px',
+                fontWeight: 800,
+                fontSize: '11px',
+                whiteSpace: 'nowrap',
+                backgroundColor: mobileTab === 'all' ? '#18181B' : 'transparent',
+                color: mobileTab === 'all' ? '#FFFFFF' : '#64748B'
+              }}
+            >
+              Tất cả
+            </button>
+            <button
+              onClick={() => setMobileTab('active')}
+              style={{
+                border: 'none',
+                padding: '6px 10px',
+                borderRadius: '6px',
+                fontWeight: 800,
+                fontSize: '11px',
+                whiteSpace: 'nowrap',
+                backgroundColor: mobileTab === 'active' ? '#2563EB' : 'transparent',
+                color: mobileTab === 'active' ? '#FFFFFF' : '#64748B'
+              }}
+            >
+              Active ({activeList.length})
+            </button>
+            <button
+              onClick={() => setMobileTab('pending')}
+              style={{
+                border: 'none',
+                padding: '6px 10px',
+                borderRadius: '6px',
+                fontWeight: 800,
+                fontSize: '11px',
+                whiteSpace: 'nowrap',
+                backgroundColor: mobileTab === 'pending' ? '#DC2626' : 'transparent',
+                color: mobileTab === 'pending' ? '#FFFFFF' : '#64748B'
+              }}
+            >
+              Sắp rụng ({pendingList.length})
+            </button>
+            <button
+              onClick={() => setMobileTab('available')}
+              style={{
+                border: 'none',
+                padding: '6px 10px',
+                borderRadius: '6px',
+                fontWeight: 800,
+                fontSize: '11px',
+                whiteSpace: 'nowrap',
+                backgroundColor: mobileTab === 'available' ? '#059669' : 'transparent',
+                color: mobileTab === 'available' ? '#FFFFFF' : '#64748B'
+              }}
+            >
+              Mua ngay ({availableList.length})
+            </button>
+            <button
+              onClick={() => setMobileTab('backlog')}
+              style={{
+                border: 'none',
+                padding: '6px 10px',
+                borderRadius: '6px',
+                fontWeight: 800,
+                fontSize: '11px',
+                whiteSpace: 'nowrap',
+                backgroundColor: mobileTab === 'backlog' ? '#1E293B' : 'transparent',
+                color: mobileTab === 'backlog' ? '#FFFFFF' : '#64748B'
+              }}
+            >
+              Chờ ({backlogList.length})
             </button>
           </div>
 
           {/* 7. FOUR-COLUMN KANBAN BOARD */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, minmax(280px, 1fr))',
+          <div className="kanban-grid" style={{
             gap: '16px',
             alignItems: 'start'
           }}>
             
             {/* COLUMN 1: BACKLOG */}
-            <div style={{
-              backgroundColor: isDarkMode ? '#18181B' : '#EFEAE1',
-              border: '2px solid #18181B',
-              borderRadius: '12px',
-              padding: '14px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-              boxShadow: '3px 3px 0px #18181B'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span className="brutal-badge" style={{ backgroundColor: '#1E293B', color: '#FFFFFF' }}>
-                    CHỜ QUÉT
-                  </span>
-                  <span style={{ fontWeight: 800, fontSize: '14px' }}>BACKLOG</span>
-                </div>
-                <span className="brutal-badge" style={{ backgroundColor: '#FFFFFF', color: '#18181B' }}>
-                  {backlogList.length}
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {backlogList.map(item => (
-                  <DomainCard key={item.id} item={item} onMove={moveDomain} onDelete={deleteDomain} isDarkMode={isDarkMode} />
-                ))}
-                {backlogList.length === 0 && (
-                  <div style={{ textAlign: 'center', padding: '24px 10px', fontSize: '12px', color: '#64748B', fontWeight: 600 }}>
-                    Không có domain trong mục chờ quét
+            {(mobileTab === 'all' || mobileTab === 'backlog') && (
+              <div style={{
+                backgroundColor: isDarkMode ? '#18181B' : '#EFEAE1',
+                border: '2px solid #18181B',
+                borderRadius: '12px',
+                padding: '14px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                boxShadow: '3px 3px 0px #18181B'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span className="brutal-badge" style={{ backgroundColor: '#1E293B', color: '#FFFFFF' }}>
+                      CHỜ QUÉT
+                    </span>
+                    <span style={{ fontWeight: 800, fontSize: '13px' }}>BACKLOG</span>
                   </div>
-                )}
+                  <span className="brutal-badge" style={{ backgroundColor: '#FFFFFF', color: '#18181B' }}>
+                    {backlogList.length}
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {backlogList.map(item => (
+                    <DomainCard key={item.id} item={item} onMove={moveDomain} onDelete={deleteDomain} isDarkMode={isDarkMode} />
+                  ))}
+                  {backlogList.length === 0 && (
+                    <div style={{ textAlign: 'center', padding: '16px 10px', fontSize: '12px', color: '#64748B', fontWeight: 600 }}>
+                      Không có domain trong mục chờ quét
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* COLUMN 2: ACTIVE MONITORING */}
-            <div style={{
-              backgroundColor: isDarkMode ? '#18181B' : '#EFEAE1',
-              border: '2px solid #18181B',
-              borderRadius: '12px',
-              padding: '14px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-              boxShadow: '3px 3px 0px #18181B'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span className="brutal-badge" style={{ backgroundColor: '#2563EB', color: '#FFFFFF' }}>
-                    THEO DÕI
+            {(mobileTab === 'all' || mobileTab === 'active') && (
+              <div style={{
+                backgroundColor: isDarkMode ? '#18181B' : '#EFEAE1',
+                border: '2px solid #18181B',
+                borderRadius: '12px',
+                padding: '14px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                boxShadow: '3px 3px 0px #18181B'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span className="brutal-badge" style={{ backgroundColor: '#2563EB', color: '#FFFFFF' }}>
+                      THEO DÕI
+                    </span>
+                    <span style={{ fontWeight: 800, fontSize: '13px' }}>ACTIVE</span>
+                  </div>
+                  <span className="brutal-badge" style={{ backgroundColor: '#FFFFFF', color: '#18181B' }}>
+                    {activeList.length}
                   </span>
-                  <span style={{ fontWeight: 800, fontSize: '14px' }}>ACTIVE</span>
                 </div>
-                <span className="brutal-badge" style={{ backgroundColor: '#FFFFFF', color: '#18181B' }}>
-                  {activeList.length}
-                </span>
-              </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {activeList.map(item => (
-                  <DomainCard key={item.id} item={item} onMove={moveDomain} onDelete={deleteDomain} isDarkMode={isDarkMode} />
-                ))}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {activeList.map(item => (
+                    <DomainCard key={item.id} item={item} onMove={moveDomain} onDelete={deleteDomain} isDarkMode={isDarkMode} />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* COLUMN 3: PENDING DELETE & GRACE */}
-            <div style={{
-              backgroundColor: isDarkMode ? '#18181B' : '#EFEAE1',
-              border: '2px solid #18181B',
-              borderRadius: '12px',
-              padding: '14px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-              boxShadow: '3px 3px 0px #18181B'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span className="brutal-badge" style={{ backgroundColor: '#DC2626', color: '#FFFFFF' }}>
-                    SẮP RỤNG
+            {(mobileTab === 'all' || mobileTab === 'pending') && (
+              <div style={{
+                backgroundColor: isDarkMode ? '#18181B' : '#EFEAE1',
+                border: '2px solid #18181B',
+                borderRadius: '12px',
+                padding: '14px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                boxShadow: '3px 3px 0px #18181B'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span className="brutal-badge" style={{ backgroundColor: '#DC2626', color: '#FFFFFF' }}>
+                      SẮP RỤNG
+                    </span>
+                    <span style={{ fontWeight: 800, fontSize: '13px' }}>PENDING / GRACE</span>
+                  </div>
+                  <span className="brutal-badge" style={{ backgroundColor: '#FFFFFF', color: '#18181B' }}>
+                    {pendingList.length}
                   </span>
-                  <span style={{ fontWeight: 800, fontSize: '14px' }}>PENDING / GRACE</span>
                 </div>
-                <span className="brutal-badge" style={{ backgroundColor: '#FFFFFF', color: '#18181B' }}>
-                  {pendingList.length}
-                </span>
-              </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {pendingList.map(item => (
-                  <DomainCard key={item.id} item={item} onMove={moveDomain} onDelete={deleteDomain} isDarkMode={isDarkMode} />
-                ))}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {pendingList.map(item => (
+                    <DomainCard key={item.id} item={item} onMove={moveDomain} onDelete={deleteDomain} isDarkMode={isDarkMode} />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* COLUMN 4: AVAILABLE TO BUY */}
-            <div style={{
-              backgroundColor: isDarkMode ? '#18181B' : '#EFEAE1',
-              border: '2px solid #18181B',
-              borderRadius: '12px',
-              padding: '14px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-              boxShadow: '3px 3px 0px #18181B'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span className="brutal-badge" style={{ backgroundColor: '#059669', color: '#FFFFFF' }}>
-                    TRỐNG
+            {(mobileTab === 'all' || mobileTab === 'available') && (
+              <div style={{
+                backgroundColor: isDarkMode ? '#18181B' : '#EFEAE1',
+                border: '2px solid #18181B',
+                borderRadius: '12px',
+                padding: '14px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                boxShadow: '3px 3px 0px #18181B'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span className="brutal-badge" style={{ backgroundColor: '#059669', color: '#FFFFFF' }}>
+                      TRỐNG
+                    </span>
+                    <span style={{ fontWeight: 800, fontSize: '13px' }}>AVAILABLE</span>
+                  </div>
+                  <span className="brutal-badge" style={{ backgroundColor: '#FFFFFF', color: '#18181B' }}>
+                    {availableList.length}
                   </span>
-                  <span style={{ fontWeight: 800, fontSize: '14px' }}>AVAILABLE</span>
                 </div>
-                <span className="brutal-badge" style={{ backgroundColor: '#FFFFFF', color: '#18181B' }}>
-                  {availableList.length}
-                </span>
-              </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {availableList.map(item => (
-                  <DomainCard key={item.id} item={item} onMove={moveDomain} onDelete={deleteDomain} isDarkMode={isDarkMode} />
-                ))}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {availableList.map(item => (
+                    <DomainCard key={item.id} item={item} onMove={moveDomain} onDelete={deleteDomain} isDarkMode={isDarkMode} />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
           </div>
         </div>
@@ -820,15 +939,16 @@ export default function DomainHunterDashboard() {
         className="brutal-btn"
         style={{
           position: 'fixed',
-          bottom: '24px',
-          right: '24px',
-          width: '52px',
-          height: '52px',
+          bottom: '20px',
+          right: '20px',
+          width: '50px',
+          height: '50px',
           borderRadius: '50%',
           backgroundColor: '#F26522',
           color: '#FFFFFF',
           padding: 0,
-          boxShadow: '4px 4px 0px #18181B'
+          boxShadow: '3px 3px 0px #18181B',
+          zIndex: 30
         }}
         title="Trợ lý Săn Tên Miền Tony"
       >
@@ -851,15 +971,13 @@ function DomainCard({
   onDelete: (id: string) => void;
   isDarkMode: boolean;
 }) {
-  const isExpiredSoon = item.daysLeft !== undefined && item.daysLeft <= 30;
-
   return (
     <div className="brutal-box" style={{
-      padding: '14px',
+      padding: '12px',
       backgroundColor: isDarkMode ? '#27272A' : '#FFFFFF',
       display: 'flex',
       flexDirection: 'column',
-      gap: '10px'
+      gap: '8px'
     }}>
       {/* Top badges */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
@@ -885,8 +1003,8 @@ function DomainCard({
       </div>
 
       {/* Domain title */}
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-        <div style={{ fontWeight: 800, fontSize: '16px', color: item.priority === 'P0' ? '#B91C1C' : undefined, wordBreak: 'break-all' }}>
+      <div>
+        <div style={{ fontWeight: 800, fontSize: '15px', color: item.priority === 'P0' ? '#B91C1C' : undefined, wordBreak: 'break-all' }}>
           {item.domain}
         </div>
       </div>
@@ -897,18 +1015,18 @@ function DomainCard({
           backgroundColor: item.daysLeft <= 15 ? '#FEE2E2' : '#F1F5F9',
           border: '1.5px solid #18181B',
           borderRadius: '6px',
-          padding: '6px 8px',
+          padding: '5px 8px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          fontSize: '12px',
+          fontSize: '11px',
           fontWeight: 700,
           color: item.daysLeft <= 15 ? '#991B1B' : '#334155'
         }}>
           <span>
             {item.daysLeft > 0 ? `⏳ Còn ${item.daysLeft} ngày` : `⚠️ Quá hạn ${Math.abs(item.daysLeft)} ngày`}
           </span>
-          <span style={{ fontSize: '11px', fontWeight: 600 }}>
+          <span style={{ fontSize: '10px', fontWeight: 600 }}>
             {item.expirationDate ? item.expirationDate.slice(0, 10) : ''}
           </span>
         </div>
@@ -916,28 +1034,28 @@ function DomainCard({
 
       {/* Note / Description */}
       {item.note && (
-        <div style={{ fontSize: '12px', color: isDarkMode ? '#D4D4D8' : '#475569', lineHeight: 1.4 }}>
+        <div style={{ fontSize: '11px', color: isDarkMode ? '#D4D4D8' : '#475569', lineHeight: 1.4 }}>
           {item.note}
         </div>
       )}
 
       {/* Registrar & Estimated Value */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748B', fontWeight: 600, borderTop: '1px solid #E2E8F0', paddingTop: '8px' }}>
-        <span>Đăng ký: {item.registrar || 'Chưa có'}</span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#64748B', fontWeight: 600, borderTop: '1px solid #E2E8F0', paddingTop: '6px' }}>
+        <span>{item.registrar || 'Chưa đăng ký'}</span>
         <span style={{ color: '#F26522', fontWeight: 700 }}>{item.priceEst || 'Thương lượng'}</span>
       </div>
 
       {/* Actions */}
-      <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+      <div style={{ display: 'flex', gap: '6px', marginTop: '2px' }}>
         {item.status === 'available' ? (
           <a
             href={`https://www.namecheap.com/domains/registration/results/?domain=${item.domain}`}
             target="_blank"
             rel="noopener noreferrer"
             className="brutal-btn brutal-btn-orange"
-            style={{ flex: 1, padding: '6px 10px', fontSize: '12px', textDecoration: 'none' }}
+            style={{ flex: 1, padding: '6px 8px', fontSize: '11px', textDecoration: 'none', minHeight: '32px' }}
           >
-            Đăng ký ngay <ExternalLink size={12} />
+            Đăng ký ngay <ExternalLink size={11} />
           </a>
         ) : (
           <a
@@ -945,9 +1063,9 @@ function DomainCard({
             target="_blank"
             rel="noopener noreferrer"
             className="brutal-btn brutal-btn-white"
-            style={{ flex: 1, padding: '6px 10px', fontSize: '12px', textDecoration: 'none' }}
+            style={{ flex: 1, padding: '6px 8px', fontSize: '11px', textDecoration: 'none', minHeight: '32px' }}
           >
-            Đặt gạch săn <ExternalLink size={12} />
+            Đặt săn <ExternalLink size={11} />
           </a>
         )}
 
@@ -963,7 +1081,7 @@ function DomainCard({
             onMove(item.id, nextMap[item.status]);
           }}
           className="brutal-btn brutal-btn-white"
-          style={{ padding: '6px 10px', fontSize: '11px' }}
+          style={{ padding: '6px 8px', fontSize: '11px', minHeight: '32px' }}
           title="Đổi cột"
         >
           Dời cột

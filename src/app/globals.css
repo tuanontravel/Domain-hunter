@@ -59,6 +59,7 @@ body {
   cursor: pointer;
   transition: all 0.12s ease;
   user-select: none;
+  min-height: 38px;
 }
 
 .brutal-btn:hover {
@@ -121,4 +122,46 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #A09484;
+}
+
+/* Mobile Responsive Utility Rules */
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+  .mobile-only {
+    display: flex !important;
+  }
+  .metric-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+  .metric-card-val {
+    font-size: 24px !important;
+  }
+  .search-container {
+    width: 100% !important;
+  }
+  .kanban-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+  .quick-form {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .quick-form button {
+    width: 100% !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-only {
+    display: none !important;
+  }
+  .kanban-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(260px, 1fr)) !important;
+  }
 }
