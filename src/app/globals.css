@@ -1,0 +1,124 @@
+:root {
+  --bg-main: #FBF9F5;
+  --bg-sidebar: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --bg-column: #F1ECE3;
+  --border-color: #18181B;
+  --text-main: #18181B;
+  --text-muted: #64748B;
+  --color-orange: #F26522;
+  --color-orange-hover: #D95315;
+  --color-orange-light: #FFF0E6;
+  --shadow-brutal: 3px 3px 0px #18181B;
+  --shadow-brutal-sm: 2px 2px 0px #18181B;
+  --shadow-brutal-lg: 5px 5px 0px #18181B;
+  --radius-base: 12px;
+  --radius-sm: 8px;
+  --radius-pill: 9999px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Neobrutalist Base */
+.brutal-box {
+  background-color: var(--bg-card);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-base);
+  box-shadow: var(--shadow-brutal);
+  transition: all 0.15s ease;
+}
+
+.brutal-box:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--shadow-brutal-lg);
+}
+
+.brutal-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--border-color);
+  box-shadow: var(--shadow-brutal-sm);
+  cursor: pointer;
+  transition: all 0.12s ease;
+  user-select: none;
+}
+
+.brutal-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--shadow-brutal);
+}
+
+.brutal-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px #000;
+}
+
+.brutal-btn-orange {
+  background-color: var(--color-orange);
+  color: #FFFFFF;
+}
+
+.brutal-btn-orange:hover {
+  background-color: var(--color-orange-hover);
+}
+
+.brutal-btn-white {
+  background-color: #FFFFFF;
+  color: var(--text-main);
+}
+
+.brutal-btn-white:hover {
+  background-color: #F4F4F5;
+}
+
+.brutal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1.5px solid var(--border-color);
+  border-radius: 6px;
+  box-shadow: 1.5px 1.5px 0px var(--border-color);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #EFEAE1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C4B9AA;
+  border: 1.5px solid #18181B;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #A09484;
+}
