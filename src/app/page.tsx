@@ -61,6 +61,18 @@ export default function DomainHunterDashboard() {
     return () => clearInterval(timer);
   }, []);
 
+  // Fetch initial domain list from backend cache
+  useEffect(() => {
+    fetch('/api/domains')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.domains && data.domains.length > 0) {
+          setDomains(data.domains);
+        }
+      })
+      .catch(err => console.error('Error loading domains:', err));
+  }, []);
+
   // Quick Live RDAP Check
   const handleQuickCheck = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -138,6 +150,7 @@ export default function DomainHunterDashboard() {
     if (!matchesSearch) return false;
 
     if (activeFilter === 'all') return true;
+    if (activeFilter === 'dropped_today') return d.isDroppedToday || d.status === 'available' || d.status === 'pendingDelete';
     if (activeFilter === 'p0') return d.priority === 'P0';
     if (activeFilter === 'vip') return d.isVip;
     if (activeFilter === 'available') return d.status === 'available';
@@ -152,6 +165,7 @@ export default function DomainHunterDashboard() {
   const pendingList = filteredDomains.filter(d => d.status === 'grace' || d.status === 'pendingDelete');
   const availableList = filteredDomains.filter(d => d.status === 'available');
 
+  const totalDroppedToday = domains.filter(d => d.isDroppedToday || d.status === 'available' || d.status === 'pendingDelete').length;
   const totalP0 = domains.filter(d => d.priority === 'P0').length;
   const totalAvailable = domains.filter(d => d.status === 'available').length;
   const totalPending = domains.filter(d => d.status === 'pendingDelete' || d.status === 'grace').length;
@@ -672,6 +686,21 @@ export default function DomainHunterDashboard() {
               style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '6px', whiteSpace: 'nowrap' }}
             >
               Tất cả ({domains.length})
+            </button>
+            <button
+              onClick={() => setActiveFilter('dropped_today')}
+              className={`brutal-btn ${activeFilter === 'dropped_today' ? 'brutal-btn-orange' : 'brutal-btn-white'}`}
+              style={{
+                padding: '4px 10px',
+                fontSize: '11px',
+                borderRadius: '6px',
+                whiteSpace: 'nowrap',
+                backgroundColor: activeFilter === 'dropped_today' ? '#DC2626' : undefined,
+                color: activeFilter === 'dropped_today' ? '#FFFFFF' : undefined,
+                border: activeFilter === 'dropped_today' ? '2px solid #991B1B' : undefined
+              }}
+            >
+              🚨 Bị xoá hôm nay ({totalDroppedToday})
             </button>
             <button
               onClick={() => setActiveFilter('p0')}
