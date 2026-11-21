@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Domain Hunter · Absolute Asia Travel',
+  title: 'Domain Hunter · AAT',
   description: 'Bản đồ săn tên miền du lịch cao cấp và theo dõi rụng tên miền tự động',
 };
 

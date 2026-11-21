@@ -1,5 +1,7 @@
 'use client';
 
+import { KeywordsModal } from '../components/KeywordsModal';
+
 import React, { useState, useEffect } from 'react';
 import {
   Globe,
@@ -42,6 +44,7 @@ export default function DomainHunterDashboard() {
   const [quickInput, setQuickInput] = useState('');
   const [scanMessage, setScanMessage] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isKeywordsModalOpen, setIsKeywordsModalOpen] = useState(false);
 
   // Live clock
   useEffect(() => {
@@ -242,10 +245,10 @@ export default function DomainHunterDashboard() {
             </div>
             <div style={{ overflow: 'hidden' }}>
               <div style={{ fontWeight: 800, fontSize: '14px', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
-                Đồng Minh Tuấn
+                Tuan Dong
               </div>
               <div style={{ fontSize: '11px', color: isDarkMode ? '#A1A1AA' : '#64748B', fontWeight: 600 }}>
-                Co-founder & Dir.
+                AAT
               </div>
             </div>
           </div>
@@ -424,7 +427,7 @@ export default function DomainHunterDashboard() {
           fontSize: '11px',
           fontWeight: 700
         }}>
-          <div style={{ color: '#F26522', marginBottom: '4px' }}>ABSOLUTE ASIA TRAVEL</div>
+          <div style={{ color: '#F26522', marginBottom: '4px' }}>AAT</div>
           <div style={{ color: isDarkMode ? '#A1A1AA' : '#64748B', fontWeight: 500 }}>
             Domain Hunter V1.0 · Responsive
           </div>
@@ -607,7 +610,7 @@ export default function DomainHunterDashboard() {
               CHIẾN LƯỢC
             </span>
             <div style={{ fontSize: '12px', fontWeight: 700, color: isDarkMode ? '#E2E8F0' : '#7C2D12', fontStyle: 'italic', flex: 1 }}>
-              &ldquo;Săn đón tên miền rụng và mua tên miền đẹp giá gốc giúp Absolute Asia Travel dẫn đầu thị trường Inbound Luxury.&rdquo;
+              &ldquo;Săn đón tên miền rụng và mua tên miền đẹp giá gốc giúp AAT dẫn đầu thị trường Inbound Luxury.&rdquo;
             </div>
           </div>
 
@@ -647,6 +650,22 @@ export default function DomainHunterDashboard() {
             >
               {isScanning ? <RefreshCw size={16} className="animate-spin" /> : <Zap size={16} />}
               {isScanning ? 'Đang quét...' : 'Quét RDAP Verisign'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsKeywordsModalOpen(true)}
+              className="brutal-btn"
+              style={{
+                backgroundColor: '#3B82F6',
+                color: '#FFFFFF',
+                whiteSpace: 'nowrap',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <SlidersHorizontal size={16} />
+              Cấu hình Từ khóa
             </button>
           </form>
 
@@ -984,7 +1003,19 @@ export default function DomainHunterDashboard() {
         <Bot size={24} />
       </button>
 
-    </div>
+
+      {/* Keywords Management Modal */}
+      <KeywordsModal
+        isOpen={isKeywordsModalOpen}
+        onClose={() => setIsKeywordsModalOpen(false)}
+        onKeywordsChange={() => {
+          fetch('/api/domains')
+            .then(res => res.json())
+            .then(data => { if (data.success && data.domains) setDomains(data.domains); })
+            .catch(err => console.error(err));
+        }}
+      />
+</div>
   );
 }
 
@@ -1116,6 +1147,7 @@ function DomainCard({
           Dời cột
         </button>
       </div>
+
     </div>
   );
 }
